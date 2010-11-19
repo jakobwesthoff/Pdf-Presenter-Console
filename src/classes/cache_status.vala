@@ -72,10 +72,10 @@ namespace org.westhoffswelt.pdfpresenter {
             var background_pixmap = new Pixmap( null, this.width, this.height, 24 );
             var gc = new GC( background_pixmap );
             
-            Color white;
-            Color.parse( "white", out white );
-            Color black;
-            Color.parse( "black", out black );
+            Gdk.Color white;
+            Gdk.Color.parse( "white", out white );
+            Gdk.Color black;
+            Gdk.Color.parse( "black", out black );
 
             gc.set_rgb_fg_color( black );
             background_pixmap.draw_rectangle( gc, true, 0, 0, this.width, this.height );

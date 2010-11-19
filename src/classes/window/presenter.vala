@@ -79,8 +79,8 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 Gtk.main_quit();
             } );
 
-            Color black;
-            Color.parse( "black", out black );
+            Gdk.Color black;
+            Gdk.Color.parse( "black", out black );
             this.modify_bg( StateType.NORMAL, black );
 
             this.fixedLayout = new Fixed();
@@ -133,8 +133,8 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             );
 
             // Color needed for the labels
-            Color white;
-            Color.parse( "white", out white );
+            Gdk.Color white;
+            Gdk.Color.parse( "white", out white );
 
             // Initial font needed for the labels
             // We approximate the point size using pt = px * .75

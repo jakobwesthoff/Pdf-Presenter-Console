@@ -66,7 +66,7 @@ namespace org.westhoffswelt.pdfpresenter {
          * This property is public and not accesed using a setter to be able to use
          * Color.parse directly on it.
          */
-        public Color normal_color;
+        public Gdk.Color normal_color;
 
         /**
          * Color used if last_minutes have been reached
@@ -74,7 +74,7 @@ namespace org.westhoffswelt.pdfpresenter {
          * This property is public and not accesed using a setter to be able to use
          * Color.parse directly on it.
          */
-        public Color last_minutes_color;
+        public Gdk.Color last_minutes_color;
         
         /**
          * Color used to represent negative number (time is over)
@@ -82,7 +82,7 @@ namespace org.westhoffswelt.pdfpresenter {
          * This property is public and not accesed using a setter to be able to use
          * Color.parse directly on it.
          */
-        public Color negative_color;
+        public Gdk.Color negative_color;
 
         /**
          * Default constructor taking the initial time as argument
@@ -92,9 +92,9 @@ namespace org.westhoffswelt.pdfpresenter {
             this._time = initial_time;
 
             // By default the colors are white, yellow and red
-            Color.parse( "white", out this.normal_color );
-            Color.parse( "orange", out this.last_minutes_color );
-            Color.parse( "red", out this.negative_color );
+            Gdk.Color.parse( "white", out this.normal_color );
+            Gdk.Color.parse( "orange", out this.last_minutes_color );
+            Gdk.Color.parse( "red", out this.negative_color );
         }
 
         /**

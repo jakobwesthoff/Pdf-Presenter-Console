@@ -48,8 +48,8 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 Gtk.main_quit();
             } );
 
-            Color black;
-            Color.parse( "black", out black );
+            Gdk.Color black;
+            Gdk.Color.parse( "black", out black );
             this.modify_bg( StateType.NORMAL, black );
 
             var fixedLayout = new Fixed();
