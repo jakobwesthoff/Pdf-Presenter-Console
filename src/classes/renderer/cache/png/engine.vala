@@ -79,7 +79,7 @@ namespace org.westhoffswelt.pdfpresenter.Renderer.Cache {
                 pixmap_width, pixmap_height
             );
 
-            char[] buffer;
+            uint8[] buffer;
 
             try {
                 pixbuf.save_to_buffer( out buffer, "png", "compression", "1", null );           
@@ -88,7 +88,7 @@ namespace org.westhoffswelt.pdfpresenter.Renderer.Cache {
                 error( "Could not generate PNG cache image for slide %u: %s", index, e.message );
             }
 
-            var item = new PNG.Item.with_char_array( buffer );
+            var item = new PNG.Item.with_char_array( (char[]) buffer );
             
             this.mutex.lock();
             this.storage[index] = item;
@@ -108,7 +108,7 @@ namespace org.westhoffswelt.pdfpresenter.Renderer.Cache {
 
             var loader = new PixbufLoader();
             try {
-                loader.write( item.get_png_data(), item.get_length() );
+                loader.write( item.get_png_data() );
                 loader.close();
             }
             catch( Error e ) {
