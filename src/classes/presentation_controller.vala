@@ -92,6 +92,23 @@ namespace org.westhoffswelt.pdfpresenter {
         }
 
         /**
+         * Notify each of the controllables of mouse scrolling
+         */
+        public void scroll( Gdk.EventScroll scroll ) {
+            
+            switch( scroll.direction ) {
+                case Gdk.ScrollDirection.UP: /* Scroll up */
+                case Gdk.ScrollDirection.LEFT: /* Scroll left */ 
+                    this.controllables_previous_page();
+                break;
+                case Gdk.ScrollDirection.DOWN: /* Scroll down */
+                case Gdk.ScrollDirection.RIGHT: /* Scroll right */ 
+                    this.controllables_next_page();
+                break;
+            }
+        }
+
+        /**
          * A request to change the page has been issued
          */
         public void page_change_request( int page_number ) {
