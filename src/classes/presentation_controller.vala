@@ -55,11 +55,13 @@ namespace org.westhoffswelt.pdfpresenter {
             switch( key.keyval ) {
                 case 0xff0d: /* Return */
                 case 0xff53: /* Cursor right */
+                case 0xff54: /* Cursor down */
                 case 0xff56: /* Page down */
                 case 0x020:  /* Space */
                     this.controllables_next_page();
                 break;
                 case 0xff51: /* Cursor left */
+                case 0xff52: /* Cursor up */
                 case 0xff55: /* Page Up */
                     this.controllables_previous_page();
                 break;
