@@ -157,7 +157,7 @@ namespace org.westhoffswelt.pdfpresenter {
             
             string presenter_pdf_file = args[1];
             // Optional notes pdf file given, show in presenter
-            if( args.length == 3 ) {
+            if( args.length >= 3 ) {
 	            presenter_pdf_file = args[2];
         	}
 
