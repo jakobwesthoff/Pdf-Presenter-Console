@@ -38,7 +38,7 @@ namespace org.westhoffswelt.pdfpresenter {
             }
             set {
                 this._time = value;
-                this.initial_time = value;
+                this.duration = value;
                 this.format_time();
             }
         }
@@ -48,10 +48,16 @@ namespace org.westhoffswelt.pdfpresenter {
          */
         protected int _time = 0;
 
-        /**
-         * Time the timer is reset to if the appropriate function is called
+        /*
+         * Duration the timer is reset too if reset is called during
+         * presentation mode.
          */
-        protected int initial_time;
+        protected int duration;
+
+        /**
+         * Start time of the talk to calculate and display a countdown
+         */
+        protected time_t start_time = 0;
 
         /**
          * Timeout used to update the timer reqularly
@@ -62,6 +68,22 @@ namespace org.westhoffswelt.pdfpresenter {
          * Time marker which indicates the last minutes have begun.
          */
         protected uint last_minutes = 5;
+
+        /**
+         * Supportes states aka. modes of the timer
+         *
+         * These states are used to indicate if the talk has already started or
+         * it is been counted down to it's beginning, for example
+         */
+        protected enum MODE {
+            pretalk,
+            talk
+        }
+
+        /**
+         * The mode the timer is currently in
+         */
+        protected MODE current_mode;
 
         /**
          * Color used for normal timer rendering
@@ -88,11 +110,16 @@ namespace org.westhoffswelt.pdfpresenter {
         public Color negative_color;
 
         /**
-         * Default constructor taking the initial time as argument
+         * Default constructor taking the initial time as argument, as well as
+         * the time to countdown until the talk actually starts.
+         *
+         * The second argument is optional. If no countdown_time is specified
+         * the countdown will be disabled. The timer is paused in such a case
+         * at the given intial_time.
          */
-        public TimerLabel( int initial_time ) {
-            this.initial_time = initial_time;
-            this._time = initial_time;
+        public TimerLabel( int duration, time_t start_time = 0 ) {
+            this.duration = duration;
+            this.start_time = start_time;
 
             // By default the colors are white, yellow and red
             Color.parse( "white", out this.normal_color );
@@ -104,7 +131,17 @@ namespace org.westhoffswelt.pdfpresenter {
          * Start the timer
          */
         public void start() {
-            if ( this.initial_time != 0 && this.timeout == 0 ) {
+            // Check if there is a countdown_timer running, in which case it
+            // will be aborted and a jump to talk mode is executed.
+            if ( this.timeout != 0 && this.current_mode == MODE.pretalk ) 
+            {
+                this.current_mode = MODE.talk;
+                this.reset( false );
+                this.start();
+            }
+            // Start the timer if it is not running and the currently set time
+            // is non zero
+            else if ( this._time != 0 && this.timeout == 0 ) {
                 this.timeout = Timeout.add( 1000, this.on_timeout );
             }
         }
@@ -123,10 +160,30 @@ namespace org.westhoffswelt.pdfpresenter {
          * Reset the timer to its initial value
          *
          * Furthermore the stop state will be restored
+         * If the countdown is running the countdown value is recalculated. The
+         * timer is not stopped in such situation.
+         *
+         * In presentation mode the time will be reset to the initial
+         * presentation time.
          */
-        public void reset() {
+        public void reset( bool do_mode_decission = true ) {
             this.stop();
-            this._time = this.initial_time;
+            if ( do_mode_decission == true ) 
+            {
+                this.select_mode();
+            }
+
+            switch( this.current_mode ) 
+            {
+                case MODE.pretalk:
+                    this._time = this.calculate_countdown();
+                    this.start();
+                break;
+                case MODE.talk:
+                    this._time = this.duration;
+                break;
+            }
+           
             this.format_time();
         }
 
@@ -138,10 +195,48 @@ namespace org.westhoffswelt.pdfpresenter {
         }
 
         /**
+         * Calculate and return the countdown time in seconds until the talk
+         * begins. If the should have already begun the value is negative
+         * indicating the amount of seconds which have already passed.
+         */
+        protected int calculate_countdown() 
+        {
+            time_t now = Time.local( time_t() ).mktime();
+            return (int)( this.start_time - now );
+        }
+
+        /**
+         * Select the mode based on the current time as well as the given talk
+         * start me
+         */
+        protected void select_mode() 
+        {
+            if ( this.calculate_countdown() <= 0 ) 
+            {
+                this.current_mode = MODE.talk;
+            }
+            else 
+            {
+                this.current_mode = MODE.pretalk;
+            }
+        }
+
+        /**
          * Update the timer on every timeout step (every second)
          */
         protected bool on_timeout() {
-            --this._time;
+            // Already switch to presentation mode if the timeout counter has
+            // reached one, because after adding the new timer a second will
+            // pass before the new value is filled in.
+            if ( this._time-- <= 1 && this.current_mode == MODE.pretalk ) 
+            {
+                // The zero has been reached on the way down to a presentation
+                // start time. Therefore a mode switch is needed
+                this.current_mode = MODE.talk;
+                this.reset();
+                this.start();
+            }
+
             this.format_time();
             return true;
         }
@@ -154,13 +249,20 @@ namespace org.westhoffswelt.pdfpresenter {
             uint time;
             uint hours, minutes, seconds;
 
-            // The default prefix is an empty string, as the time is normally not
-            // negative ;)
+            // In pretalk mode we display a negative sign before the the time,
+            // to indicate that we are actually counting down to the start of
+            // the presentation.
+            // Normally the default is a positive number. Therefore a negative
+            // sign is not needed and the prefix is just an empty string.
             string prefix = "";
+            if ( this.current_mode == MODE.pretalk ) 
+            {
+                prefix = "-";
+            }
 
             if ( this._time >= 0 ) {
                 // Time is positive
-                if ( this.initial_time != 0 
+                if ( this.duration != 0 
                   && this._time < this.last_minutes * 60 ) {
                     this.modify_fg( 
                         StateType.NORMAL, 
