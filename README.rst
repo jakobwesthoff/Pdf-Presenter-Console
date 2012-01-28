@@ -191,11 +191,11 @@ Keybindings
 During the presentation the following key strokes and mouse clicks are detected
 and interpreted:
 
-- Left cursor key / Page up / Right mouse button 
+- Left cursor key / Page up / Right mouse button / Mouse wheel up or left
     - Go back one slide
 - Backspace / p
     - Go back 10 slides
-- Right cursor key / Page down / Return / Space / Left mouse button
+- Right cursor key / Page down / Return / Space / Left mouse button / Mouse wheel down or right
     - Go forward one slide
 - n
     - Go forward 10 slides
