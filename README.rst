@@ -150,6 +150,7 @@ your likings::
       -s, --switch-screens          Switch the presentation and the presenter screen.
       -c, --disable-cache           Disable caching and pre-rendering of slides to save memory at the cost of speed.
       -z, --disable-compression     Disable the compression of slide images to trade memory consumption for speed. (Avg. factor 30)
+      -f, --log-transitions=FILE    Log slide transition times to the specified file.
 
 
 Caching / Prerendering

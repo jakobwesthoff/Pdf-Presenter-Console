@@ -110,6 +110,13 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 out current_scale_rect
             );
 
+            if (Options.log_file != null) {
+                var log = FileStream.open(Options.log_file, "w");
+                this.current_view.entering_slide.connect( (slide_number) => {
+                    log.printf("%s %u\n", new DateTime.now_local().format("%s.%N"), slide_number);
+                } );
+            }
+
             // Position it in the top left corner.
             // The scale rect information is used to center the image inside
             // its area.
