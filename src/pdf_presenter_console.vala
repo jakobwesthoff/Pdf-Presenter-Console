@@ -162,11 +162,8 @@ namespace org.westhoffswelt.pdfpresenter {
                     this.create_presenter_window( args[1], presenter_monitor );
             }
             else {
-                stdout.printf( "Only one screen detected falling back to simple presentation mode.\n" );
-                // Decide which window to display by indirectly examining the
-                // display_switch flag This allows for training sessions with
-                // one monitor displaying the presenter screen
-                if ( presenter_monitor == 1 ) {
+                stdout.printf( "Single-screen presentation mode.\n" );
+                if ( Options.display_switch != true ) {
                     this.presentation_window = 
                         this.create_presentation_window( args[1], 0 );
                 }
