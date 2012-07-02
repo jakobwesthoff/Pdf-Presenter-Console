@@ -4,17 +4,17 @@
  * This file is part of pdf-presenter-console.
  *
  * Copyright (C) 2010-2011 Jakob Westhoff <jakob@westhoffswelt.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -53,7 +53,7 @@ namespace org.westhoffswelt.pdfpresenter {
             base( metadata, width, height );
 
             // Calculate the scaling factor needed.
-            this.scaling_factor = Math.fmax( 
+            this.scaling_factor = Math.fmax(
                 width / metadata.get_page_width(),
                 height / metadata.get_page_height()
             );
@@ -79,9 +79,9 @@ namespace org.westhoffswelt.pdfpresenter {
          * If the requested slide is not available an
          * RenderError.SLIDE_DOES_NOT_EXIST error is thrown.
          */
-        public override Gdk.Pixmap render_to_pixmap( int slide_number ) 
+        public override Gdk.Pixmap render_to_pixmap( int slide_number )
             throws Renderer.RenderError {
-            
+
             var metadata = this.metadata as Metadata.Pdf;
 
             // Check if a valid page is requested, before locking anything.
@@ -107,25 +107,16 @@ namespace org.westhoffswelt.pdfpresenter {
             Pixmap pixmap = new Pixmap( null, this.width, this.height, 24 );
             Context cr = Gdk.cairo_create( pixmap );
 
-            cr.set_source_rgb( 0, 0, 0 );
+            cr.set_source_rgb( 255, 255, 255 );
             cr.rectangle( 0, 0, this.width, this.height );
             cr.fill();
 
-            /**
-             * @TODO: Refactor rendering process to use cairo context directly
-             * for page rendering instead of inbetween pixbuf
-             */
-            var pdf = new Gdk.Pixbuf( Gdk.Colorspace.RGB, false, 8, this.width, this.height );
+            cr.scale(this.scaling_factor, this.scaling_factor);
+
             MutexLocks.poppler.lock();
-            page.render_to_pixbuf( 0, 0, this.width, this.height, this.scaling_factor, 0, pdf );
+            page.render(cr);
             MutexLocks.poppler.unlock();
 
-            // Compose the rendered pdf with the white background.
-            Gdk.cairo_set_source_pixbuf( cr, pdf, 0, 0 );
-            cr.rectangle( 0, 0, this.width, this.height );
-            cr.fill();
-
-            pdf = null;
 
             // If the cache is enabled store the newly rendered pixmap
             if ( this.cache != null ) {
