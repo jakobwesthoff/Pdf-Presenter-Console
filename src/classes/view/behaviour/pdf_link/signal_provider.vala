@@ -4,17 +4,17 @@
  * This file is part of pdf-presenter-console.
  *
  * Copyright (C) 2010-2011 Jakob Westhoff <jakob@westhoffswelt.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -68,13 +68,13 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
         /**
          * Poppler.LinkMappings of the current page
          */
-        protected unowned GLib.List<unowned Poppler.LinkMapping> page_link_mappings = null;
+        protected GLib.List<unowned Poppler.LinkMapping> page_link_mappings = null;
 
         /**
          * Precalculated Gdk.Rectangles for every link mapping
          */
         protected Gdk.Rectangle[] precalculated_mapping_rectangles = null;
-        
+
         /**
          * Attach a View.Pdf to this signal provider
          */
@@ -112,7 +112,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
             }
             return null;
 }
-    
+
         /**
          * Handle the given mapping as it has been clicked on.
          *
@@ -131,16 +131,16 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
                             MutexLocks.poppler.lock();
                             var metadata = this.target.get_renderer().get_metadata() as Metadata.Pdf;
                             var document = metadata.get_document();
-                            unowned Poppler.Dest destination = document.find_dest( 
+                            Poppler.Dest destination = document.find_dest(
                                 action.dest.named_dest
                             );
                             MutexLocks.poppler.unlock();
 
                             // Fire the correct signal for this
-                            this.clicked_internal_link( 
+                            this.clicked_internal_link(
                                 this.convert_poppler_rectangle_to_gdk_rectangle( mapping.area ),
                                 this.target.get_current_slide_number(),
-                                /* We use zero based indexing. Pdf links use one based indexing */ 
+                                /* We use zero based indexing. Pdf links use one based indexing */
                                 destination.page_num - 1
                             );
                         break;
@@ -150,7 +150,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
                 case Poppler.ActionType.LAUNCH:
                     unowned Poppler.ActionLaunch* action = (Poppler.ActionLaunch*)mapping.action;
                     // Fire the appropriate signal
-                    this.clicked_external_command( 
+                    this.clicked_external_command(
                         this.convert_poppler_rectangle_to_gdk_rectangle( mapping.area ),
                         this.target.get_current_slide_number(),
                         action.file_name,
@@ -195,7 +195,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
             if ( e.button != 1 ) {
                 return false;
             }
-          
+
             // In case the coords belong to a link we will get its action. If
             // they are pointing nowhere we just get null.
             unowned Poppler.LinkMapping mapping = this.get_link_mapping_by_coordinates( e.x, e.y );
@@ -206,7 +206,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
 
             // Handle the mapping properly by emitting the correct signals
             this.handle_link_mapping( mapping );
-            
+
             // Other callbacks up the chain are suppressed to make sure nobody
             // else changes the presentation page on a mouseclick.
             return true;
@@ -224,7 +224,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
             if ( link_mapping == null ) {
                 // We may have left a link
                 if ( this.active_mapping != null ) {
-                    this.link_mouse_leave( 
+                    this.link_mouse_leave(
                         this.convert_poppler_rectangle_to_gdk_rectangle( this.active_mapping.area ),
                         this.active_mapping
                     );
@@ -242,7 +242,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
             if ( link_mapping != null && this.active_mapping == null ) {
                 // We just entered a new link
                 this.active_mapping = link_mapping.copy();
-                this.link_mouse_enter( 
+                this.link_mouse_enter(
                     this.convert_poppler_rectangle_to_gdk_rectangle( this.active_mapping.area ),
                     this.active_mapping
                 );
@@ -250,12 +250,12 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
             }
 
             // We "jumped" from one link to another. Therefore enter and leave signals are needed.
-            this.link_mouse_leave( 
+            this.link_mouse_leave(
                 this.convert_poppler_rectangle_to_gdk_rectangle( this.active_mapping.area ),
                 this.active_mapping
             );
             this.active_mapping = link_mapping.copy();
-            this.link_mouse_enter( 
+            this.link_mouse_enter(
                 this.convert_poppler_rectangle_to_gdk_rectangle( this.active_mapping.area ),
                 this.active_mapping
             );
@@ -279,7 +279,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
                 this.precalculated_mapping_rectangles = new Gdk.Rectangle[this.page_link_mappings.length()];
                 int i=0;
                 foreach( var mapping in this.page_link_mappings ) {
-                    this.precalculated_mapping_rectangles[i++] = this.convert_poppler_rectangle_to_gdk_rectangle( 
+                    this.precalculated_mapping_rectangles[i++] = this.convert_poppler_rectangle_to_gdk_rectangle(
                         mapping.area
                     );
                 }
@@ -296,7 +296,7 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
 
             // Free the mapping memory
             MutexLocks.poppler.lock();
-            Poppler.Page.free_link_mapping(  
+            Poppler.Page.free_link_mapping(
                 this.page_link_mappings
             );
             MutexLocks.poppler.unlock();
