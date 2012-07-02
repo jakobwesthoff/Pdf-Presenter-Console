@@ -296,9 +296,9 @@ namespace org.westhoffswelt.pdfpresenter.View.Behaviour {
 
             // Free the mapping memory
             MutexLocks.poppler.lock();
-            Poppler.Page.free_link_mapping(
-                this.page_link_mappings
-            );
+//            Poppler.Page.free_link_mapping(
+//                this.page_link_mappings
+//            );
             MutexLocks.poppler.unlock();
         }
     }
