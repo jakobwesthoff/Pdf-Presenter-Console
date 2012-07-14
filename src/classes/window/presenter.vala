@@ -4,17 +4,17 @@
  * This file is part of pdf-presenter-console.
  *
  * Copyright (C) 2010-2011 Jakob Westhoff <jakob@westhoffswelt.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -100,15 +100,20 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             // the screen, as we need a place to display the timer and slide
             // count.
             Rectangle current_scale_rect;
-            int current_allocated_width = (int)Math.floor( 
-                this.screen_geometry.width * Options.current_size / (double)100 
+            int current_allocated_width = (int)Math.floor(
+                this.screen_geometry.width * Options.current_size / (double)100
             );
-            this.current_view = View.Pdf.from_pdf_file( 
+            this.current_view = View.Pdf.from_pdf_file(
                 pdf_filename,
                 current_allocated_width,
                 bottom_position,
                 out current_scale_rect
             );
+
+            if(Options.latexBeamerNotes == Options.LatexBeamerNotes.LEFT)
+                ((Renderer.Pdf)this.current_view.get_renderer()).set_latexbeamernotes(Options.LatexBeamerNotes.RIGHT);
+            else if(Options.latexBeamerNotes == Options.LatexBeamerNotes.RIGHT)
+                ((Renderer.Pdf)this.current_view.get_renderer()).set_latexbeamernotes(Options.LatexBeamerNotes.LEFT);
 
             // Position it in the top left corner.
             // The scale rect information is used to center the image inside
@@ -119,7 +124,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             // remaining width
             Rectangle next_scale_rect;
             var next_allocated_width = this.screen_geometry.width - current_allocated_width;
-            this.next_view = View.Pdf.from_pdf_file( 
+            this.next_view = View.Pdf.from_pdf_file(
                 pdf_filename,
                 next_allocated_width,
                 bottom_position,
@@ -129,10 +134,10 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.next_view.next();
 
             // Position it at the top and right of the current slide
-            this.fixedLayout.put( 
-                this.next_view, 
+            this.fixedLayout.put(
+                this.next_view,
                 current_allocated_width + next_scale_rect.x,
-                next_scale_rect.y 
+                next_scale_rect.y
             );
 
             // Color needed for the labels
@@ -142,17 +147,17 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             // Initial font needed for the labels
             // We approximate the point size using pt = px * .75
             var font = Pango.FontDescription.from_string( "Verdana" );
-            font.set_size( 
+            font.set_size(
                 (int)Math.floor( bottom_height * 0.8 * 0.75 ) * Pango.SCALE
             );
 
             // Calculate the countdown to display until the presentation has to
             // start
             time_t start_time = 0;
-            if ( Options.start_time != null ) 
+            if ( Options.start_time != null )
             {
-                start_time = this.parseStartTime( 
-                    Options.start_time 
+                start_time = this.parseStartTime(
+                    Options.start_time
                 );
             }
 
@@ -161,7 +166,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.timer = new TimerLabel( (int)Options.duration * 60, start_time );
             this.timer.set_justify( Justification.CENTER );
             this.timer.modify_font( font );
-            this.timer.set_size_request( 
+            this.timer.set_size_request(
                 (int)Math.floor( this.screen_geometry.width * 0.75 ),
                 bottom_height - 10
             );
@@ -175,9 +180,9 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.slide_progress.set_justify( Justification.CENTER );
             this.slide_progress.modify_fg( StateType.NORMAL, white );
             this.slide_progress.modify_font( font );
-            this.slide_progress.set_size_request( 
+            this.slide_progress.set_size_request(
                 (int)Math.floor( this.screen_geometry.width * 0.25 ),
-                bottom_height - 10 
+                bottom_height - 10
             );
             this.fixedLayout.put(
                 this.slide_progress,
@@ -197,14 +202,14 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.reset();
 
             // Enable the render caching if it hasn't been forcefully disabled.
-            if ( !Options.disable_caching ) {               
-                ((Renderer.Caching)this.current_view.get_renderer()).set_cache( 
-                    Renderer.Cache.OptionFactory.create( 
+            if ( !Options.disable_caching ) {
+                ((Renderer.Caching)this.current_view.get_renderer()).set_cache(
+                    Renderer.Cache.OptionFactory.create(
                         this.current_view.get_renderer().get_metadata()
                     )
                 );
-                ((Renderer.Caching)this.next_view.get_renderer()).set_cache( 
-                    Renderer.Cache.OptionFactory.create( 
+                ((Renderer.Caching)this.next_view.get_renderer()).set_cache(
+                    Renderer.Cache.OptionFactory.create(
                         this.next_view.get_renderer().get_metadata()
                     )
                 );
@@ -237,11 +242,11 @@ namespace org.westhoffswelt.pdfpresenter.Window {
          * Update the slide count view
          */
         protected void update_slide_count() {
-            this.slide_progress.set_text( 
-                "%d/%u".printf( 
-                    this.current_view.get_current_slide_number() + 1, 
+            this.slide_progress.set_text(
+                "%d/%u".printf(
+                    this.current_view.get_current_slide_number() + 1,
                     this.slide_count
-                )        
+                )
             );
         }
 
@@ -309,7 +314,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         public void goto_page( int page_number ) {
             try {
                 this.current_view.display( page_number );
-                this.next_view.display( 
+                this.next_view.display(
                     page_number + 1
                 );
             }
@@ -321,7 +326,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.timer.start();
         }
 
-        /** 
+        /**
          * Take a cache observer and register it with all prerendering Views
          * shown on the window.
          *
@@ -341,10 +346,10 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             // Add the cache status widget to be displayed
             observer.set_height( 6 );
             observer.set_width( this.screen_geometry.width );
-            this.fixedLayout.put( 
+            this.fixedLayout.put(
                 observer,
                 0,
-                this.screen_geometry.height - 6 
+                this.screen_geometry.height - 6
             );
             observer.show();
         }
@@ -352,7 +357,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         /**
          * Parse the given start time string to a Time object
          */
-        private time_t parseStartTime( string start_time ) 
+        private time_t parseStartTime( string start_time )
         {
             var tm = Time.local( time_t() );
             tm.strptime( start_time, "%H:%M:%S" );

@@ -40,6 +40,8 @@ namespace org.westhoffswelt.pdfpresenter {
          */
         protected Renderer.Cache.Base cache = null;
 
+        protected Options.LatexBeamerNotes latexbeamernotes = Options.LatexBeamerNotes.NONE;
+
         /**
          * Base constructor taking a pdf metadata object as well as the desired
          * render width and height as parameters.
@@ -71,6 +73,11 @@ namespace org.westhoffswelt.pdfpresenter {
          */
         public Renderer.Cache.Base get_cache() {
             return this.cache;
+        }
+
+        public void set_latexbeamernotes(Options.LatexBeamerNotes notes)
+        {
+            this.latexbeamernotes = notes;
         }
 
         /**
@@ -111,12 +118,17 @@ namespace org.westhoffswelt.pdfpresenter {
             cr.rectangle( 0, 0, this.width, this.height );
             cr.fill();
 
+            // Latex beamer notes: Render correct side of the page
+            if(this.latexbeamernotes == Options.LatexBeamerNotes.LEFT)
+                cr.translate(-this.width,0);
+
             cr.scale(this.scaling_factor, this.scaling_factor);
+
+
 
             MutexLocks.poppler.lock();
             page.render(cr);
             MutexLocks.poppler.unlock();
-
 
             // If the cache is enabled store the newly rendered pixmap
             if ( this.cache != null ) {
