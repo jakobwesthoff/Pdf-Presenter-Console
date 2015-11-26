@@ -67,5 +67,10 @@ namespace org.westhoffswelt.pdfpresenter {
          * this time.
          */
         public static string? start_time = null;
+
+        /**
+         * Log file for slide transition times.
+         */
+        public static string? log_file = null;
     }
 }
