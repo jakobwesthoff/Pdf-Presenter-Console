@@ -1,3 +1,11 @@
+============
+Discontinued
+============
+
+**Discontinued Project**: This project has been discontinued. A well maintained fork, with new functionality is available here: https://pdfpc.github.io/
+
+Thanks to the pdfpc team, which took over this tool to make it even better.
+
 =====================
 Pdf Presenter Console
 =====================
