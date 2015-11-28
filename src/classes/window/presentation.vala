@@ -64,6 +64,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 pdf_filename,
                 this.screen_geometry.width, 
                 this.screen_geometry.height,
+                Options.black_on_end,
                 out scale_rect
             );
 
@@ -85,9 +86,11 @@ namespace org.westhoffswelt.pdfpresenter.Window {
 
             this.add_events(EventMask.KEY_PRESS_MASK);
             this.add_events(EventMask.BUTTON_PRESS_MASK);
+            this.add_events(EventMask.SCROLL_MASK);
 
             this.key_press_event.connect( this.on_key_pressed );
             this.button_press_event.connect( this.on_button_press );
+            this.scroll_event.connect( this.on_scroll );
 
             this.reset();
         }
@@ -115,6 +118,17 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         }
 
         /**
+         * Handle mouse scrolling events on the window and, if neccessary send
+         * them to the presentation controller
+         */
+        protected bool on_scroll( Gtk.Widget source, EventScroll scroll ) {
+            if ( this.presentation_controller != null ) {
+                this.presentation_controller.scroll( scroll );
+            }
+            return false;
+        }
+
+        /**
          * Set the presentation controller which is notified of keypresses and
          * other observed events
          */
@@ -137,10 +151,24 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         }
 
         /**
+         * Go forward 10 slides
+         */
+        public void jump10() {
+            this.view.jumpN(10);
+        }
+
+        /**
          * Switch the shown pdf to the previous page
          */
         public void previous_page() {
             this.view.previous();
+        }
+
+        /**
+         * Switch the shown pdf to the previous page
+         */
+        public void back10() {
+            this.view.backN(10);
         }
 
         /**
@@ -165,6 +193,32 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             catch( Renderer.RenderError e ) {
                 GLib.error( "The pdf page %d could not be rendered: %s", page_number, e.message );
             }
+        }
+        
+        public void fade_to_black() {
+            if (this.faded_to_black) {
+                try {
+                    this.view.redraw();
+                }
+                catch ( Renderer.RenderError e ) {
+                    GLib.error( "Could not redraw slide: %s", e.message);
+                }
+            } else {
+                this.view.fade_to_black();
+            }
+            this.faded_to_black = !this.faded_to_black;
+        }
+
+        /**
+         * Edit note for current slide. We don't do anything.
+         */
+        public void edit_note() {
+        }
+
+        /**
+         * Ask for the page to jump to. We don't do anything
+         */
+        public void ask_goto_page() {
         }
 
         /**

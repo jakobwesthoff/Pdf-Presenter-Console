@@ -58,6 +58,18 @@ namespace org.westhoffswelt.pdfpresenter.Window {
          * Slide progress label ( eg. "23/42" )
          */
         protected Label slide_progress;
+        
+        protected Entry slide_jump;
+
+        /**
+         * Indication that the slide is blanked (faded to black)
+         */
+        protected Label blank_label;
+
+        /**
+         * Text box for displaying notes for the slides
+         */
+        protected TextView notes_view;
 
         /**
          * Fixed layout to position all the elements inside the window
@@ -73,9 +85,14 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         protected uint slide_count;
 
         /**
+         * Notes for the slides
+         */
+        protected SlidesNotes notes;
+
+        /**
          * Base constructor instantiating a new presenter window
          */
-        public Presenter( string pdf_filename, int screen_num ) {
+        public Presenter( string pdf_filename, int screen_num, SlidesNotes slides_notes ) {
             base( screen_num );
 
             this.destroy.connect( (source) => {
@@ -107,37 +124,70 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 pdf_filename,
                 current_allocated_width,
                 bottom_position,
+                Options.black_on_end,
                 out current_scale_rect
             );
+            this.notes = slides_notes;
 
             // Position it in the top left corner.
             // The scale rect information is used to center the image inside
             // its area.
             this.fixedLayout.put( this.current_view, current_scale_rect.x, current_scale_rect.y );
+            //this.fixedLayout.put( this.current_view, 0, 0);
 
             // The next slide is right to the current one and takes up the
             // remaining width
             Rectangle next_scale_rect;
-            var next_allocated_width = this.screen_geometry.width - current_allocated_width;
+            var next_allocated_width = this.screen_geometry.width - current_allocated_width-10; // We leave a bit of margin between the two views
             this.next_view = View.Pdf.from_pdf_file( 
                 pdf_filename,
                 next_allocated_width,
                 bottom_position,
+                true,
                 out next_scale_rect
             );
             // Set the second slide as starting point
             this.next_view.next();
 
             // Position it at the top and right of the current slide
+            int next_view_y_pos;
+            if (this.notes.has_notes())
+                next_view_y_pos = 5;
+            else
+                next_view_y_pos = next_scale_rect.y;
             this.fixedLayout.put( 
                 this.next_view, 
-                current_allocated_width + next_scale_rect.x,
-                next_scale_rect.y 
+                current_allocated_width + next_scale_rect.x + 5,
+                next_view_y_pos
+                //next_scale_rect.y 
             );
 
             // Color needed for the labels
             Color white;
             Color.parse( "white", out white );
+
+            // TextView for notes in the slides
+            var notes_font = Pango.FontDescription.from_string( "Verdana" );
+            notes_font.set_size( 
+                (int)Math.floor( 20 * 0.75 ) * Pango.SCALE
+            );
+            this.notes_view = new TextView();
+            this.notes_view.editable = false;
+            this.notes_view.cursor_visible = false;
+            this.notes_view.wrap_mode = WrapMode.WORD;
+            this.notes_view.modify_font(notes_font); 
+            this.notes_view.modify_base(StateType.NORMAL, black);
+            this.notes_view.modify_text(StateType.NORMAL, white);
+            this.notes_view.set_size_request(next_scale_rect.width, 
+                                             bottom_position - next_scale_rect.height - 15);
+            this.notes_view.buffer.text = "";
+            this.notes_view.key_press_event.connect( this.on_key_press_notes_view );
+            if (this.notes.has_notes()) {
+                this.fixedLayout.put(this.notes_view,
+                                     current_allocated_width + next_scale_rect.x + 5,
+                                     2*next_scale_rect.y
+                );
+            }
 
             // Initial font needed for the labels
             // We approximate the point size using pt = px * .75
@@ -175,21 +225,56 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.slide_progress.set_justify( Justification.CENTER );
             this.slide_progress.modify_fg( StateType.NORMAL, white );
             this.slide_progress.modify_font( font );
-            this.slide_progress.set_size_request( 
+            this.slide_progress.set_size_request(
                 (int)Math.floor( this.screen_geometry.width * 0.25 ),
-                bottom_height - 10 
+                bottom_height - 10
             );
             this.fixedLayout.put(
                 this.slide_progress,
                 (int)Math.ceil( this.screen_geometry.width * 0.75 ),
                 bottom_position - 10
             );
+    
+            this.slide_jump = new Entry();
+            this.slide_jump.set_alignment(0.5f);
+            //this.slide_jump.modify_base(StateType.NORMAL, black);
+            //this.slide_jump.modify_text(StateType.NORMAL, white);
+            this.slide_jump.modify_font( font );
+            this.slide_jump.editable = false;
+            this.slide_jump.no_show_all = true; 
+            this.slide_jump.key_press_event.connect( this.on_key_press_slide_jump );
+            this.slide_jump.set_size_request( 
+                (int)Math.floor( this.screen_geometry.width * 0.25 ),
+                bottom_height - 10 
+            );
+            this.fixedLayout.put(
+                this.slide_jump,
+                (int)Math.ceil( this.screen_geometry.width * 0.75 ),
+                bottom_position - 10
+            );
+
+            this.blank_label = new Label( "Blank" );
+            this.blank_label.set_justify( Justification.LEFT );
+            this.blank_label.modify_fg( StateType.NORMAL, white );
+            this.blank_label.modify_font( font );
+            this.blank_label.no_show_all = true;
+            this.blank_label.set_size_request( 
+                (int)Math.floor( this.screen_geometry.width * 0.25 ),
+                bottom_height - 10 
+            );
+            this.fixedLayout.put(
+                this.blank_label,
+                0,
+                bottom_position - 10
+            );
 
             this.add_events(EventMask.KEY_PRESS_MASK);
             this.add_events(EventMask.BUTTON_PRESS_MASK);
+            this.add_events(EventMask.SCROLL_MASK);
 
             this.key_press_event.connect( this.on_key_pressed );
             this.button_press_event.connect( this.on_button_press );
+            this.scroll_event.connect( this.on_scroll );
 
             // Store the slide count once
             this.slide_count = this.current_view.get_renderer().get_metadata().get_slide_count();
@@ -217,9 +302,11 @@ namespace org.westhoffswelt.pdfpresenter.Window {
          */
         protected bool on_key_pressed( Gtk.Widget source, EventKey key ) {
             if ( this.presentation_controller != null ) {
-                this.presentation_controller.key_press( key );
+                return this.presentation_controller.key_press( key );
+            } else {
+                // Can this happen?
+                return false;
             }
-            return false;
         }
 
         /**
@@ -229,6 +316,17 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         protected bool on_button_press( Gtk.Widget source, EventButton button ) {
             if ( this.presentation_controller != null ) {
                 this.presentation_controller.button_press( button );
+            }
+            return false;
+        }
+
+        /**
+         * Handle mouse scrolling events on the window and, if neccessary send
+         * them to the presentation controller
+         */
+        protected bool on_scroll( Gtk.Widget source, EventScroll scroll ) {
+            if ( this.presentation_controller != null ) {
+                this.presentation_controller.scroll( scroll );
             }
             return false;
         }
@@ -267,6 +365,21 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.current_view.next();
             this.next_view.next();
             this.update_slide_count();
+            this.update_note();
+            this.blank_label.hide();
+
+            this.timer.start();
+        }
+
+        /**
+         * Switch the shown pdf to the next page
+         */
+        public void jump10() {
+            this.current_view.jumpN(10);
+            this.next_view.jumpN(10);
+            this.update_slide_count();
+            this.update_note();
+            this.blank_label.hide();
 
             this.timer.start();
         }
@@ -283,6 +396,29 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             }
             this.current_view.previous();
             this.update_slide_count();
+            this.update_note();
+            this.blank_label.hide();
+        }
+
+        /**
+         * Go back 10 slides
+         */
+        public void back10() {
+            if (this.current_view.get_current_slide_number() > 10) {
+            if ( (int)Math.fabs( (double)( this.current_view.get_current_slide_number() - this.next_view.get_current_slide_number() ) ) >= 1) {
+                // Only move the next slide back 10 if there is a difference of at
+                // least one slide between current and next
+                    this.next_view.backN(10);
+                } else {
+                    this.next_view.backN(9);
+                }
+                this.current_view.backN(10);
+                this.update_slide_count();
+                this.update_note();
+                this.blank_label.hide();
+            } else {
+                this.goto_page(0);
+            }
         }
 
         /**
@@ -301,6 +437,10 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             this.timer.reset();
 
             this.update_slide_count();
+            
+            this.update_note();
+
+            this.blank_label.hide();
         }
 
         /**
@@ -318,7 +458,87 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             }
 
             this.update_slide_count();
+            this.update_note();
+            this.blank_label.hide();
             this.timer.start();
+        }
+
+        /**
+         * Ask for the page to jump to
+         */
+        public void ask_goto_page() {
+           this.slide_jump.set_text("/%u".printf(this.slide_count));
+           this.slide_jump.editable = true;
+           this.slide_jump.grab_focus();
+           this.slide_jump.set_position(0);
+           this.slide_jump.show();
+           this.slide_progress.hide();
+           this.presentation_controller.set_ignore_input_events( true );
+        }
+    
+        /**
+         * Handle key events for the slide_jump entry field
+         */
+        protected bool on_key_press_slide_jump( Gtk.Widget source, EventKey key ) {
+            if ( key.keyval == 0xff0d ) {
+                // Try to parse the input
+               string input_text = this.slide_jump.text;
+               int destination = int.parse(input_text.substring(0, input_text.index_of("/")));
+               this.slide_jump.editable = false;
+               this.slide_jump.hide();
+               this.slide_progress.show();
+               this.presentation_controller.set_ignore_input_events( false );
+               if ( destination != 0 )
+                  this.presentation_controller.goto_page(destination-1);
+               return true;
+            } else {
+               return false;
+            }
+        }
+
+        /**
+         * We will notify the presenter that the screen is faded to black, but
+         * we will retain the slide view.
+         */
+        public void fade_to_black() {
+            if (this.faded_to_black)
+                this.blank_label.hide();
+            else
+                this.blank_label.show();
+            this.faded_to_black = !this.faded_to_black;
+        }
+
+        /**
+         * Edit a note. Basically give focus to notes_view
+         */
+        public void edit_note() {
+            this.notes_view.editable = true;
+            this.notes_view.cursor_visible = true;
+            this.notes_view.grab_focus();
+            this.presentation_controller.set_ignore_input_events( true );
+        }
+
+        /**
+         * Handle key presses when editing a note
+         */
+        protected bool on_key_press_notes_view( Gtk.Widget source, EventKey key ) {
+            if ( key.keyval == 0xff1b) { /* Escape */
+                this.notes_view.editable = false;
+                this.notes_view.cursor_visible = false;
+                this.notes.set_note( this.notes_view.buffer.text, this.current_view.get_current_slide_number() );
+                this.presentation_controller.set_ignore_input_events( false );
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        /**
+         * Update the text of the current note
+         */
+        protected void update_note() {
+            string this_note = notes.get_note_for_slide(this.current_view.get_current_slide_number());
+            this.notes_view.buffer.text = this_note;
         }
 
         /** 
