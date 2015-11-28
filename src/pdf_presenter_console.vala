@@ -68,6 +68,9 @@ namespace org.westhoffswelt.pdfpresenter {
             { "switch-screens", 's', 0, 0, ref Options.display_switch, "Switch the presentation and the presenter screen.", null },
             { "disable-cache", 'c', 0, 0, ref Options.disable_caching, "Disable caching and pre-rendering of slides to save memory at the cost of speed.", null },
             { "disable-compression", 'z', 0, 0, ref Options.disable_cache_compression, "Disable the compression of slide images to trade memory consumption for speed. (Avg. factor 30)", null },
+            { "notes", 'n', 0, OptionArg.STRING, ref Options.notes_fname, "File containing the notes to display with the slides", "F" },
+            { "black-on-end", 'b', 0, 0, ref Options.black_on_end, "Add an additional black slide at the end of the presentation", null },
+            { "single-screen", 'S', 0, OptionArg.INT, ref Options.single_screen, "Force to use only one screen", "S" },
             { null }
         };
 
@@ -102,8 +105,8 @@ namespace org.westhoffswelt.pdfpresenter {
          * Create and return a PresenterWindow using the specified monitor
          * while displaying the given file
          */
-        private Window.Presenter create_presenter_window( string filename, int monitor ) {
-            var presenter_window = new Window.Presenter( filename, monitor );
+        private Window.Presenter create_presenter_window( string filename, int monitor, SlidesNotes notes ) {
+            var presenter_window = new Window.Presenter( filename, monitor, notes );
             controller.register_controllable( presenter_window );
             presenter_window.set_cache_observer( this.cache_status );
 
@@ -138,10 +141,12 @@ namespace org.westhoffswelt.pdfpresenter {
             this.parse_command_line_options( args );
 
             stdout.printf( "Initializing rendering...\n" );
+
+            SlidesNotes notes = new SlidesNotes(Options.notes_fname);
            
             // Initialize global controller and CacheStatus, to manage
             // crosscutting concerns between the different windows.
-            this.controller = new PresentationController();
+            this.controller = new PresentationController(notes);
             this.cache_status = new CacheStatus();
 
             int presenter_monitor, presentation_monitor;
@@ -154,24 +159,27 @@ namespace org.westhoffswelt.pdfpresenter {
                 presentation_monitor = 0;
             }
 
-            if ( Gdk.Screen.get_default().get_n_monitors() > 1 ) {
+            if ( Options.single_screen == 100 && Gdk.Screen.get_default().get_n_monitors() > 1 ) {
                 this.presentation_window = 
                     this.create_presentation_window( args[1], presentation_monitor );
                 this.presenter_window = 
-                    this.create_presenter_window( args[1], presenter_monitor );
+                    this.create_presenter_window( args[1], presenter_monitor , notes);
             }
             else {
                 stdout.printf( "Only one screen detected falling back to simple presentation mode.\n" );
+                int monitor = 0;
+                if ( Options.single_screen < 100)
+                    monitor = Options.single_screen;
                 // Decide which window to display by indirectly examining the
                 // display_switch flag This allows for training sessions with
                 // one monitor displaying the presenter screen
-                if ( presenter_monitor == 1 ) {
+                if ( presenter_monitor == monitor ) {
                     this.presentation_window = 
-                        this.create_presentation_window( args[1], 0 );
+                        this.create_presentation_window( args[1], monitor );
                 }
                 else {
                     this.presenter_window = 
-                        this.create_presenter_window( args[1], 0 );
+                        this.create_presenter_window( args[1], monitor, notes );
                 }
             }
 

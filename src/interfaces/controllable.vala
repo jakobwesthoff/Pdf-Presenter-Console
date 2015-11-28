@@ -43,9 +43,24 @@ namespace org.westhoffswelt.pdfpresenter {
         public abstract void next_page();
 
         /**
+         * Go forward 10 slides in the presentation, if applicable
+         */
+        public abstract void jump10();
+
+        /**
          * Change the presentation slide to the previous page if applicable.
          */
         public abstract void previous_page();
+
+        /**
+         * Go back 10 slides in the presentation, if applicable
+         */
+        public abstract void back10(); 
+
+        /**
+         * Make the presentation go black, if applicable
+         */
+        public abstract void fade_to_black();
 
         /**
          * Reset the presentation to it's initial state
@@ -56,5 +71,15 @@ namespace org.westhoffswelt.pdfpresenter {
          * Display a certain page
          */
         public abstract void goto_page( int page_number );
+
+        /**
+         * Edit note for current slide
+         */
+        public abstract void edit_note();
+
+        /**
+         * Ask for the page to jump to
+         */
+        public abstract void ask_goto_page();
     }
 }

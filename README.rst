@@ -158,7 +158,9 @@ your likings::
       -s, --switch-screens          Switch the presentation and the presenter screen.
       -c, --disable-cache           Disable caching and pre-rendering of slides to save memory at the cost of speed.
       -z, --disable-compression     Disable the compression of slide images to trade memory consumption for speed. (Avg. factor 30)
-
+      -n, --notes=F                 File containing the notes to display with the slides
+      -b, --black-on-end            Add an additional black slide at the end of the presentation
+      -S, --single-screen=S         Force to use only one screen
 
 Caching / Prerendering
 ----------------------
@@ -199,13 +201,24 @@ and interpreted:
 
 - Left cursor key / Page up / Right mouse button 
     - Go back one slide
+- Backspace / p
+    - Go back 10 slides
 - Right cursor key / Page down / Return / Space / Left mouse button
     - Go forward one slide
+- n
+    - Go forward 10 slides
 - Home
     - Go back to the first slide and reset the timer
+- g
+    - Input a slide number to jump to
 - Escape / q /Alt+F4
     - Quit the presentation viewer
-
+- b
+    - Turn off the presentation view (i.e. fill it with a black color)
+- e
+    - Edit note for current slide (if option -n is given in the command line)
+- s
+    - Save notes to disk (they are also saved automatically on exit)
 
 Timer
 -----
@@ -223,6 +236,18 @@ change color to indicate your talk is nearing its end.
 As soon as the timer reaches the zero mark (00:00:00) it will turn red and
 count further down showing a negative time, to provide information on how many
 minutes you are overtime.
+
+Notes
+-----
+
+Textual notes can be displayed for each slide. To activate notes use the -n
+command line option, giving a filename, which does not need to exist. While in
+the presentation, pressing 'e' will allow you to take notes for the screen.
+To go out of editing mode, press the Escape key. Note that while editing a note
+the keybindings stop working, i.e. you are not able to change slides.
+
+The notes are stored in the given file in a plain text format, easy to edit
+also from outside the program.
 
 Download
 ========

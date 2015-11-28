@@ -64,6 +64,7 @@ namespace org.westhoffswelt.pdfpresenter.Window {
                 pdf_filename,
                 this.screen_geometry.width, 
                 this.screen_geometry.height,
+                Options.black_on_end,
                 out scale_rect
             );
 
@@ -137,10 +138,24 @@ namespace org.westhoffswelt.pdfpresenter.Window {
         }
 
         /**
+         * Go forward 10 slides
+         */
+        public void jump10() {
+            this.view.jumpN(10);
+        }
+
+        /**
          * Switch the shown pdf to the previous page
          */
         public void previous_page() {
             this.view.previous();
+        }
+
+        /**
+         * Switch the shown pdf to the previous page
+         */
+        public void back10() {
+            this.view.backN(10);
         }
 
         /**
@@ -165,6 +180,32 @@ namespace org.westhoffswelt.pdfpresenter.Window {
             catch( Renderer.RenderError e ) {
                 GLib.error( "The pdf page %d could not be rendered: %s", page_number, e.message );
             }
+        }
+        
+        public void fade_to_black() {
+            if (this.faded_to_black) {
+                try {
+                    this.view.redraw();
+                }
+                catch ( Renderer.RenderError e ) {
+                    GLib.error( "Could not redraw slide: %s", e.message);
+                }
+            } else {
+                this.view.fade_to_black();
+            }
+            this.faded_to_black = !this.faded_to_black;
+        }
+
+        /**
+         * Edit note for current slide. We don't do anything.
+         */
+        public void edit_note() {
+        }
+
+        /**
+         * Ask for the page to jump to. We don't do anything
+         */
+        public void ask_goto_page() {
         }
 
         /**
