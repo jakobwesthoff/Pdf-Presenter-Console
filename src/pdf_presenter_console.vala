@@ -79,7 +79,7 @@ namespace org.westhoffswelt.pdfpresenter {
          * errorcode 1
          */
         protected void parse_command_line_options( string[] args ) {
-            var context = new OptionContext( "<pdf-file>" );
+            var context = new OptionContext( "<pdf-file> [<pdf-notes-file>]" );
 
             context.add_main_entries( options, null );
             
@@ -92,7 +92,7 @@ namespace org.westhoffswelt.pdfpresenter {
                 Posix.exit( 1 );
             }
 
-            if ( args.length != 2 ) {
+            if ( args.length < 2 ) {
                 stderr.printf( "%s", context.get_help( true, null ) );
                 Posix.exit( 1 );
             }
@@ -145,6 +145,7 @@ namespace org.westhoffswelt.pdfpresenter {
             this.cache_status = new CacheStatus();
 
             int presenter_monitor, presentation_monitor;
+
             if ( Options.display_switch != true ) {
                 presenter_monitor    = 0;
                 presentation_monitor = 1;
@@ -153,12 +154,18 @@ namespace org.westhoffswelt.pdfpresenter {
                 presenter_monitor    = 1;
                 presentation_monitor = 0;
             }
+            
+            string presenter_pdf_file = args[1];
+            // Optional notes pdf file given, show in presenter
+            if( args.length >= 3 ) {
+	            presenter_pdf_file = args[2];
+        	}
 
             if ( Gdk.Screen.get_default().get_n_monitors() > 1 ) {
                 this.presentation_window = 
                     this.create_presentation_window( args[1], presentation_monitor );
                 this.presenter_window = 
-                    this.create_presenter_window( args[1], presenter_monitor );
+                    this.create_presenter_window( presenter_pdf_file, presenter_monitor );
             }
             else {
                 stdout.printf( "Only one screen detected falling back to simple presentation mode.\n" );
@@ -171,7 +178,7 @@ namespace org.westhoffswelt.pdfpresenter {
                 }
                 else {
                     this.presenter_window = 
-                        this.create_presenter_window( args[1], 0 );
+                        this.create_presenter_window( presenter_pdf_file, 0 );
                 }
             }
 
