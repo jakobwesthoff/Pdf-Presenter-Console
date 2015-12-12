@@ -33,6 +33,11 @@ namespace org.westhoffswelt.pdfpresenter {
         public static bool display_switch = false;
         
         /**
+         * Commandline option to allow the single output on dual monitors, mirrored
+         */
+        public static bool display_mirror = false;
+        
+        /**
          * Commandline option which allows the complete disabling of slide caching
          */
         public static bool disable_caching = false;

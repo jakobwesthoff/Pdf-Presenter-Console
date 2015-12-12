@@ -66,6 +66,7 @@ namespace org.westhoffswelt.pdfpresenter {
             { "last-minutes", 'l', 0, OptionArg.INT, ref Options.last_minutes, "Time in minutes, from which on the timer changes its color. (Default 5 minutes)", "N" },
             { "current-size", 'u', 0, OptionArg.INT, ref Options.current_size, "Percentage of the presenter screen to be used for the current slide. (Default 60)", "N" },
             { "switch-screens", 's', 0, 0, ref Options.display_switch, "Switch the presentation and the presenter screen.", null },
+            { "mirror-screens", 'm', 0, 0, ref Options.display_mirror, "Display the presentation on both screens", null },
             { "disable-cache", 'c', 0, 0, ref Options.disable_caching, "Disable caching and pre-rendering of slides to save memory at the cost of speed.", null },
             { "disable-compression", 'z', 0, 0, ref Options.disable_cache_compression, "Disable the compression of slide images to trade memory consumption for speed. (Avg. factor 30)", null },
             { null }
@@ -145,27 +146,24 @@ namespace org.westhoffswelt.pdfpresenter {
             this.cache_status = new CacheStatus();
 
             int presenter_monitor, presentation_monitor;
-            if ( Options.display_switch != true ) {
-                presenter_monitor    = 0;
-                presentation_monitor = 1;
-            }
-            else {
+            if ( Options.display_switch == true || Options.display_mirror == true) {
                 presenter_monitor    = 1;
                 presentation_monitor = 0;
             }
+            else {
+                presenter_monitor    = 0;
+                presentation_monitor = 1;
+            }
 
-            if ( Gdk.Screen.get_default().get_n_monitors() > 1 ) {
+            if ( Gdk.Screen.get_default().get_n_monitors() > 1 && Options.display_mirror != true) {
                 this.presentation_window = 
                     this.create_presentation_window( args[1], presentation_monitor );
                 this.presenter_window = 
                     this.create_presenter_window( args[1], presenter_monitor );
             }
             else {
-                stdout.printf( "Only one screen detected falling back to simple presentation mode.\n" );
-                // Decide which window to display by indirectly examining the
-                // display_switch flag This allows for training sessions with
-                // one monitor displaying the presenter screen
-                if ( presenter_monitor == 1 ) {
+                stdout.printf( "Single-screen presentation mode.\n" );
+                if ( Options.display_switch != true ) {
                     this.presentation_window = 
                         this.create_presentation_window( args[1], 0 );
                 }
