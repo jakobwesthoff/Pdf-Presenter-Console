@@ -4,17 +4,17 @@
  * This file is part of pdf-presenter-console.
  *
  * Copyright (C) 2010-2011 Jakob Westhoff <jakob@westhoffswelt.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -57,19 +57,21 @@ namespace org.westhoffswelt.pdfpresenter.Window {
 
             var fixedLayout = new Fixed();
             this.add( fixedLayout );
-            
+
             Rectangle scale_rect;
-            
-            this.view = View.Pdf.from_pdf_file( 
+
+            this.view = View.Pdf.from_pdf_file(
                 pdf_filename,
-                this.screen_geometry.width, 
+                this.screen_geometry.width,
                 this.screen_geometry.height,
                 out scale_rect
             );
 
+            ((Renderer.Pdf)this.view.get_renderer()).set_latexbeamernotes(Options.latexBeamerNotes);
+
             if ( !Options.disable_caching ) {
-                ((Renderer.Caching)this.view.get_renderer()).set_cache( 
-                    Renderer.Cache.OptionFactory.create( 
+                ((Renderer.Caching)this.view.get_renderer()).set_cache(
+                    Renderer.Cache.OptionFactory.create(
                         this.view.get_renderer().get_metadata()
                     )
                 );

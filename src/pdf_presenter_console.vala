@@ -4,17 +4,17 @@
  * This file is part of pdf-presenter-console.
  *
  * Copyright (C) 2010-2011 Jakob Westhoff <jakob@westhoffswelt.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -68,8 +68,28 @@ namespace org.westhoffswelt.pdfpresenter {
             { "switch-screens", 's', 0, 0, ref Options.display_switch, "Switch the presentation and the presenter screen.", null },
             { "disable-cache", 'c', 0, 0, ref Options.disable_caching, "Disable caching and pre-rendering of slides to save memory at the cost of speed.", null },
             { "disable-compression", 'z', 0, 0, ref Options.disable_cache_compression, "Disable the compression of slide images to trade memory consumption for speed. (Avg. factor 30)", null },
+            { "latexbeamernotes", 'n', 0, OptionArg.CALLBACK, (void*)Application.parse_latexbeamernotes, "Enable support for latex beamer notes.", "left|right" },
             { null }
         };
+
+        protected static bool parse_latexbeamernotes (string option_name, string val,  void* data)
+        {
+            if(val == "left")
+            {
+                Options.latexBeamerNotes = Options.LatexBeamerNotes.LEFT;
+            }
+            else if(val == "right")
+            {
+                Options.latexBeamerNotes = Options.LatexBeamerNotes.RIGHT;
+            }
+            else if(val == "none")
+            {
+                Options.latexBeamerNotes = Options.LatexBeamerNotes.NONE;
+            }
+            else
+                return false;
+            return true;
+        }
 
         /**
          * Parse the commandline and apply all found options to there according
@@ -82,7 +102,7 @@ namespace org.westhoffswelt.pdfpresenter {
             var context = new OptionContext( "<pdf-file>" );
 
             context.add_main_entries( options, null );
-            
+
             try {
                 context.parse( ref args );
             }
@@ -138,7 +158,7 @@ namespace org.westhoffswelt.pdfpresenter {
             this.parse_command_line_options( args );
 
             stdout.printf( "Initializing rendering...\n" );
-           
+
             // Initialize global controller and CacheStatus, to manage
             // crosscutting concerns between the different windows.
             this.controller = new PresentationController();
@@ -155,9 +175,9 @@ namespace org.westhoffswelt.pdfpresenter {
             }
 
             if ( Gdk.Screen.get_default().get_n_monitors() > 1 ) {
-                this.presentation_window = 
+                this.presentation_window =
                     this.create_presentation_window( args[1], presentation_monitor );
-                this.presenter_window = 
+                this.presenter_window =
                     this.create_presenter_window( args[1], presenter_monitor );
             }
             else {
@@ -166,11 +186,11 @@ namespace org.westhoffswelt.pdfpresenter {
                 // display_switch flag This allows for training sessions with
                 // one monitor displaying the presenter screen
                 if ( presenter_monitor == 1 ) {
-                    this.presentation_window = 
+                    this.presentation_window =
                         this.create_presentation_window( args[1], 0 );
                 }
                 else {
-                    this.presenter_window = 
+                    this.presenter_window =
                         this.create_presenter_window( args[1], 0 );
                 }
             }
@@ -180,12 +200,12 @@ namespace org.westhoffswelt.pdfpresenter {
             if ( this.presentation_window != null ) {
                 this.presentation_window.show_all();
             }
-            
+
             if ( this.presenter_window != null ) {
                 this.presenter_window.show_all();
             }
 
-            
+
             // Enter the Glib eventloop
             // Everything from this point on is completely signal based
             Gdk.threads_enter();
